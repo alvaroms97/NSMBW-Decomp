@@ -652,9 +652,8 @@ void daFarBG_c::fn_801178F0(int x, int y) {
     float width = c_PIC_WIDTH * mScale.x;
     float height = c_PIC_HEIGHT * mScale.y;
 
-    float yOffset = GetScrollBaseY() + height * 0.5f;
-
-    yOffset += mOffset.y;
+    float halfHeight = 0.5f * height;
+    float yOffset = GetScrollBaseY() + mOffset.y + halfHeight;
 
     float tmp = yOffset;
     while (tmp < 0.0f) {
