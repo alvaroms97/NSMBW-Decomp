@@ -13,23 +13,35 @@
 #include <constants/sound_list.h>
 #include <game/bases/d_actor_manager.hpp>
 
-daFarBG_HIO_c::daFarBG_HIO_c() : m_00(1.0f), m_04(1.0f), m_08(1.0f), m_0c(0.0f), m_10(0.0f), m_14(1.0f), m_18(0), m_19(0), m_1a(0), m_1b(0), m_1c(0), m_1d(0), m_1e(0), mShouldHideModel(false), m_20(0), m_21(0), mShouldNotSetCullingInfo(false), m_23(0), m_24(0xFFFF), m_26(0), m_27(0), m_28(0), m_29(0), m_2c(0), m_30(0), m_3c(0), m_3d(0), m_3e(0) {
-    GXColor col1 = (GXColor){0xFF, 0xC8, 0x96, 0};
-    GXColor col2 = (GXColor){0x05, 0x3C, 0x32, 0};
-
-    m_34 = col1;
-    m_38 = col2;
-
-    for (int i = 0; i < (int)ARRAY_SIZE(m_3f); i++) {
-        for (int j = 0; j < (int)ARRAY_SIZE(m_3f[0]); j++) {
-            for (int k = 0; k < (int)ARRAY_SIZE(m_3f[0][0]); k++) {
-                m_3f[i][j][k] = 1;
-            }
-        }
+daFarBG_HIO_c::daFarBG_HIO_c() :
+    m_00(1.0f), m_04(1.0f), m_08(1.0f),
+    m_0c(0.0f), m_10(0.0f), m_14(1.0f),
+    m_18(0), m_19(0), m_1a(0), m_1b(0), m_1c(0), m_1d(0), m_1e(0),
+    mShouldHideModel(false), m_20(0), m_21(0),
+    mShouldNotSetCullingInfo(false), m_23(0),
+    m_24(-1), m_26(0), m_27(0), m_28(0), m_29(0),
+    m_2c(0), m_30(0),
+    m_34(nw4r::ut::Color(0xFF, 0xC8, 0x96, 0)), // #FFC896
+    m_38(nw4r::ut::Color(0x05, 0x3C, 0x32, 0)), // #053C32
+    m_3c(0), m_3d(0), m_3e(0)
+{
+    for (int i = 0; i < (int) ARRAY_SIZE(m_3f); i++) {
+        m_3f[i] = 1;
     }
 }
 
-BASE_PROFILE(FAR_BG, daFarBG_c)
+float l_TestScale = 1.0f;
+float l_offsetZ = 0.1f;
+float l_scaleXY = 1.0f;
+
+float daFarBG_c::c_PIC_WIDTH = l_TestScale * 480.0f;
+float daFarBG_c::c_PIC_WIDTH_HALF = c_PIC_WIDTH / 2.0f;
+float daFarBG_c::c_PIC_HEIGHT = l_TestScale * 320.0f;
+float daFarBG_c::c_PIC_HEIGHT_HALF = c_PIC_HEIGHT / 2.0f;
+
+daFarBG_HIO_c daFarBG_c::m_HIO[2];
+
+ACTOR_PROFILE(FAR_BG, daFarBG_c, 0);
 
 int daFarBG_c::create() {
     c_PIC_WIDTH = 720.0f;
@@ -135,7 +147,7 @@ bool daFarBG_c::entryModel(mdlData_t *model) {
     model->mModel->getLocalMtx(&mtx);
 
     if (!m_HIO[mIsBgB].mShouldNotSetCullingInfo) {
-        SetCullingInfo((m3d::smdl_c &) model->mModel);
+        SetCullingInfo(*model->mModel);
     }
 
     if (!m_HIO[mIsBgB].mShouldHideModel) {
@@ -233,39 +245,38 @@ nw4r::g3d::ResFile daFarBG_c::GetRes(unsigned short bg_id, char* arcName, char* 
 
 void daFarBG_c::CreateModel(unsigned short bg_id, daFarBG_c::mdlData_t* mdl_data, bool c) {
     char effectName[16];
-    char arcName_out[64];
-    char resPath[64];
     char arcName[64];
+    char resPath[64];
+    char arcName_out[64];
 
     nw4r::g3d::ResFile res = GetRes(bg_id, arcName, resPath, arcName_out);
     nw4r::g3d::ResMdl resMdl = res.GetResMdl(arcName_out);
 
     if (fn_80081BE0(1, 0x2a, 1)) {
-        d3d::SetResTevColorAll(&resMdl, GX_TEVREG0, m_HIO[mIsBgB].m_34);
-        d3d::SetResTevColorAll(&resMdl, GX_TEVREG1, m_HIO[mIsBgB].m_38);
+        d3d::SetResTevColorAll(resMdl, GX_TEVREG0, m_HIO[mIsBgB].m_34);
+        d3d::SetResTevColorAll(resMdl, GX_TEVREG1, m_HIO[mIsBgB].m_38);
     }
 
     nw4r::g3d::ResAnmClr resAnmClr = res.GetResAnmClr(resPath);
     nw4r::g3d::ResAnmChr resAnmChr = res.GetResAnmChr(resPath);
 
-    if (&resAnmChr != nullptr) {
-        m3d::mdl_c * model = new m3d::mdl_c();
-        mdl_data->mModel = model;
-        model->create(resMdl, &mAllocator, 0x60);
+    mdl_data->mModel = new m3d::mdl_c();
+    mdl_data->mModel->create(resMdl, &mAllocator, 0x60, 1, nullptr);
 
-        for (int i = 0; i < resMdl.GetResNodeNumEntries(); i++) {
-            if (!memcmp(resMdl.GetResNode(i).GetName(), "Trans", 6)) {
-                mdl_data->mIsTranslation = true;
-                break;
-            }
+    for (int i = 0; i < resMdl.GetResNodeNumEntries(); i++) {
+        if (!memcmp(resMdl.GetResNode(i).GetName(), "Trans", 6)) {
+            mdl_data->mIsTranslation = true;
+            break;
         }
+    }
 
-        m3d::anmChr_c * anmchr = new m3d::anmChr_c();
-        mdl_data->mAnmChr = anmchr;
-        anmchr->create(resMdl, resAnmChr, &mAllocator);
+    resAnmChr = res.GetResAnmChr(arcName_out);
+    if (resAnmChr.IsValid()) {
+        mdl_data->mAnmChr = new m3d::anmChr_c();
+        mdl_data->mAnmChr->create(resMdl, resAnmChr, &mAllocator, nullptr);
         mdl_data->mModel->setAnm(*mdl_data->mAnmChr);
 
-        if (resAnmChr.GetNumFrame() == 0) {
+        if (resAnmChr.GetAnmPolicy() == nw4r::g3d::ANM_POLICY_ONETIME) {
             mdl_data->mAnmChr->setRate(0.0f);
             mdl_data->mAnmChr->mPlayMode = 1;
             mdl_data->m_11 = true;
@@ -274,14 +285,9 @@ void daFarBG_c::CreateModel(unsigned short bg_id, daFarBG_c::mdlData_t* mdl_data
             for (int i = 0; i < resMdl.GetResMatNumEntries(); i++) {
                 nw4r::g3d::ResNode resNode = resMdl.GetResNode(i);
 
-                const char * name;
-                if (resNode.GetName() == nullptr) {
-                    name = nullptr;
-                } else {
-                    name = resNode.GetName();
-                }
+                const char *name = resNode.GetName();
 
-                snprintf(effectName, sizeof(effectName), "Effect0%d_", j);
+                snprintf(effectName, sizeof(effectName), "Effect0%d_", j + 1);
 
                 if (strstr(name, effectName)) {
                     m_5f4[j] = i;
@@ -296,51 +302,47 @@ void daFarBG_c::CreateModel(unsigned short bg_id, daFarBG_c::mdlData_t* mdl_data
 
     if (c) {
         nw4r::g3d::ResAnmTexSrt resAnmTexSrt = res.GetResAnmTexSrt(arcName_out);
+        if (resAnmTexSrt.IsValid()) {
+            mdl_data->mAnmSrt = new m3d::anmTexSrt_c();
+            mdl_data->mAnmSrt->create(resMdl, resAnmTexSrt, &mAllocator, nullptr, 1);
 
-        if (&resAnmTexSrt != nullptr) {
-            m3d::anmTexSrt_c * anm_tex_srt = new m3d::anmTexSrt_c();
-            mdl_data->mAnmSrt = anm_tex_srt;
-            anm_tex_srt->create(resMdl, resAnmTexSrt, &mAllocator, nullptr, 1);
-
-            if (m_62c == 0) {
-                mdl_data->mAnmSrt->setPlayMode(m3d::FORWARD_LOOP, 0);
-            } else {
+            if (m_62c != 0) {
                 mdl_data->mAnmSrt->setFrameStart(0.0f, 0);
                 mdl_data->mAnmSrt->setRate(0.0f, 0);
                 mdl_data->mAnmSrt->setPlayMode(m3d::FORWARD_ONCE, 0);
+            } else {
+                mdl_data->mAnmSrt->setPlayMode(m3d::FORWARD_LOOP, 0);
             }
 
             mdl_data->mModel->setAnm(*mdl_data->mAnmSrt);
         }
 
-        nw4r::g3d::ResAnmClr resAnmClr2 = res.GetResAnmClr(arcName_out);
-
-        if (&resAnmClr != nullptr) {
-            m3d::anmMatClr_c * anm_mat_clr = new m3d::anmMatClr_c();
-            mdl_data->mAnmClr = anm_mat_clr;
-            anm_mat_clr->create(resMdl, resAnmClr2, &mAllocator, nullptr, 1);
-            anm_mat_clr->setPlayMode(m3d::FORWARD_LOOP, 0);
+        resAnmClr = res.GetResAnmClr(arcName_out);
+        if (resAnmClr.IsValid()) {
+            mdl_data->mAnmClr = new m3d::anmMatClr_c();
+            mdl_data->mAnmClr->create(resMdl, resAnmClr, &mAllocator, nullptr, 1);
+            mdl_data->mAnmClr->setPlayMode(m3d::FORWARD_LOOP, 0);
             mdl_data->mModel->setAnm(*mdl_data->mAnmClr);
         }
-
-        if (fn_80089030() == 0) {
-            if (mIsBgB == 0) {
-                mdl_data->mModel->setPriorityDraw(0x15, 1);
-            } else {
-                mdl_data->mModel->setPriorityDraw(0x13, 0);
-            }
-        } else {
-            if (mIsBgB == 0) {
-                mdl_data->mModel->setPriorityDraw(0xF, -1);
-            } else {
-                mdl_data->mModel->setPriorityDraw(0xE, -1);
-            }
-        }
-
-        mdl_data->mModel->setScale(mScale);
-        dActor_c::setSoftLight_Map(*mdl_data->mModel);
-        mdl_data->mModel->setCallback(&mCallback);
     }
+
+    if (fn_80089030() == 0) {
+        if (mIsBgB == 0) {
+            mdl_data->mModel->setPriorityDraw(0x15, 1);
+        } else {
+            mdl_data->mModel->setPriorityDraw(0x13, 0);
+        }
+    } else {
+        if (mIsBgB == 0) {
+            mdl_data->mModel->setPriorityDraw(0xF, -1);
+        } else {
+            mdl_data->mModel->setPriorityDraw(0xE, -1);
+        }
+    }
+
+    mdl_data->mModel->setScale(mScale);
+    dActor_c::setSoftLight_Map(*mdl_data->mModel);
+    mdl_data->mModel->setCallback(&mCallback);
 }
 
 
@@ -439,6 +441,7 @@ float daFarBG_c::GetScrollBaseY() {
 
 daFarBG_c::ScrollBaseType_e daFarBG_c::GetScrollBaseType() {
     switch (mRepeatType) {
+        case REPEAT_1:
         case REPEAT_4:
         case REPEAT_5:
         case REPEAT_6:
@@ -446,12 +449,10 @@ daFarBG_c::ScrollBaseType_e daFarBG_c::GetScrollBaseType() {
         case REPEAT_2:
         case REPEAT_3:
             return SCROLL_1;
-        default:
-            break;
-        case REPEAT_1:
-            return SCROLL_0;
         case REPEAT_7:
             return SCROLL_2;
+        default:
+            break;
     }
 
     return SCROLL_0;
@@ -487,262 +488,223 @@ float daFarBG_c::GetModelBasePosX(int a, int b, float c) {
     return ret;
 }
 
-const float l_offsetZ = 0.1f;
+void daFarBG_c::fn_80116E60(int x, int y) {
+    float width = c_PIC_WIDTH * mScale.x;
+    float height = c_PIC_HEIGHT * mScale.y;
 
-void daFarBG_c::fn_80116E60(int a, int b) {
-    float f1 = c_PIC_HEIGHT * mScale.y;
-    float f2 = c_PIC_WIDTH * mScale.x;
+    for (int currY = y - 1; currY >= 0; currY--) {
+        for (int currX = 0; currX < x; currX++) {
+            bgData_t *curr = mpBgData + currX + currY * 66;
 
-    int i4 = b - 1;
-
-    for (int i = i4; i >= 0; i--) {
-        int i6 = i4 - i;
-
-        bgData_t * row = &mpBgData[i * 0x42];
-
-        for (int j = 0; j < a; j++) {
-            bgData_t * data = &row[j];
-            data->m_0.x = GetModelBasePosX(j, b, f2);
-            float scroll = GetScrollBaseY();
-            data->m_0.y = (f1 * 0.5f - 256.0f) + f1 * (float)(i4 - i) + scroll;
+            curr->m_0.x = GetModelBasePosX(currX, x, width);
+            curr->m_0.y = GetScrollBaseY() + (y - 1 - currY) * height + (height * 0.5f - 256.0f);
 
             if (mIsBgB == 0) {
-                data->m_0.z = -7000.0f;
+                curr->m_0.z = -7000.0f;
             } else {
-                data->m_0.z = -8000.0f;
+                curr->m_0.z = -8000.0f;
             }
+            curr->m_0.z -= (y - 1 - currY + currX) * l_offsetZ;
 
-            data->m_0.z -= i6 * l_offsetZ;
-            if (i == i4) {
-                data->m_c = 2;
+            if (currY == y - 1) {
+                curr->m_c = 2;
             } else {
-                data->m_c = 1;
+                curr->m_c = 1;
             }
         }
     }
 }
 
-void daFarBG_c::fn_80117030(int a, int b) {
-    float f1 = c_PIC_HEIGHT * mScale.y;
-    float f2 = c_PIC_WIDTH * mScale.x;
+void daFarBG_c::fn_80117030(int x, int y) {
+    float width = c_PIC_WIDTH * mScale.x;
+    float height = c_PIC_HEIGHT * mScale.y;
 
-    for (int i = 0; i < b; i++) {
-        bgData_t * row = &mpBgData[i * 0x42];
+    for (int currY = 0; currY < y; currY++) {
+        for (int currX = 0; currX < x; currX++) {
+            bgData_t *curr = mpBgData + currX + currY * 66;
 
-        for (int j = 0; j < a; j++) {
-            bgData_t * data = &row[j];
-
-            data->m_0.x = GetModelBasePosX(j, b, f2);
-            float scroll = GetScrollBaseY();
-            data->m_0.y = (256.0f - f1 * 0.5f) + (scroll - (float)i * f1);
+            curr->m_0.x = GetModelBasePosX(currX, x, width);
+            curr->m_0.y = GetScrollBaseY() - currY * height + (256.0f - height * 0.5f);
 
             if (mIsBgB == 0) {
-                data->m_0.z = -7000.0f;
+                curr->m_0.z = -7000.0f;
             } else {
-                data->m_0.z = -8000.0f;
+                curr->m_0.z = -8000.0f;
             }
+            curr->m_0.z -= (currX + currY) * l_offsetZ;
 
-            data->m_0.z -= (i + j) * l_offsetZ;
-
-            if (i == 0) {
-                data->m_c = 0;
+            if (currY == 0) {
+                curr->m_c = 0;
             } else {
-                data->m_c = 1;
+                curr->m_c = 1;
             }
         }
     }
 }
 
-void daFarBG_c::fn_801171F0(int a, int b) {
-    float f1 = c_PIC_HEIGHT * mScale.y;
-    float f2 = c_PIC_WIDTH * mScale.x;
+void daFarBG_c::fn_801171F0(int x, int y) {
+    float width = c_PIC_WIDTH * mScale.x;
+    float height = c_PIC_HEIGHT * mScale.y;
 
-    for (int i = 0; i < 2; i++) {
-        int row_idx = i * 0x42;
+    for (int currY = 0; currY < 2; currY++) {
+        for (int currX = 0; currX < x; currX++) {
+            bgData_t *curr = mpBgData + currX + currY * 66;
 
-        for (int j = 0; j < a; j++) {
-            bgData_t * data = &mpBgData[row_idx + j];
-
-            data->m_0.x = GetModelBasePosX(j, b, f2);
-            float scroll = GetScrollBaseY();
-            data->m_0.y = (256.0f - f1 * 0.5f) + (scroll - (float)i * f1);
+            curr->m_0.x = GetModelBasePosX(currX, x, width);
+            curr->m_0.y = GetScrollBaseY() - currY * height + (256.0f - height * 0.5f);
 
             if (mIsBgB == 0) {
-                data->m_0.z = -7000.0f;
+                curr->m_0.z = -7000.0f;
             } else {
-                data->m_0.z = -8000.0f;
+                curr->m_0.z = -8000.0f;
             }
+            curr->m_0.z -= (currX + currY) * l_offsetZ;
 
-            data->m_0.z -= (i + j) * l_offsetZ;
-
-            if (i == 0) {
-                data->m_c = 0;
+            if (currY == 0) {
+                curr->m_c = 0;
             } else {
-                data->m_c = 1;
+                curr->m_c = 1;
             }
         }
     }
 }
-void daFarBG_c::fn_801173A0(int a, int b) {
-    float f1 = c_PIC_HEIGHT * mScale.y;
-    float f2 = c_PIC_WIDTH * mScale.x;
+void daFarBG_c::fn_801173A0(int x, int y) {
+    float width = c_PIC_WIDTH * mScale.x;
+    float height = c_PIC_HEIGHT * mScale.y;
 
-    for (int i = 2; i >= 0; i--) {
-        int row_idx = i * 0x42;
+    y = 2;
+    for (int currY = y - 1; currY >= 0; currY--) {
+        for (int currX = 0; currX < x; currX++) {
+            bgData_t *curr = mpBgData + currX + currY * 66;
 
-        int i6 = 1 - i;
-        for (int j = 0; j < a; j++) {
-            bgData_t * data = &mpBgData[row_idx + j];
-
-            data->m_0.x = GetModelBasePosX(j, b, f2);
-            float scroll = GetScrollBaseY();
-            data->m_0.y = (f1 * 0.5f - 256.0f) + (float)(1 - i) * f1 + scroll;
+            curr->m_0.x = GetModelBasePosX(currX, x, width);
+            curr->m_0.y = GetScrollBaseY() + (y - 1 - currY) * height + (height * 0.5f - 256.0f);
 
             if (mIsBgB == 0) {
-                data->m_0.z = -7000.0f;
+                curr->m_0.z = -7000.0f;
             } else {
-                data->m_0.z = -8000.0f;
+                curr->m_0.z = -8000.0f;
             }
+            curr->m_0.z -= (y - 1 - currY + currX) * l_offsetZ;
 
-            data->m_0.z -= i6 * l_offsetZ;
-
-            if (i == 1) {
-                data->m_c = 2;
+            if (currY == y - 1) {
+                curr->m_c = 2;
             } else {
-                data->m_c = 1;
+                curr->m_c = 1;
             }
         }
     }
 }
-void daFarBG_c::fn_80117550(int a, int b) {
-    float f1 = c_PIC_HEIGHT * mScale.y;
-    float f2 = c_PIC_WIDTH * mScale.x;
-    int i7 = b - 1;
+void daFarBG_c::fn_80117550(int x, int y) {
+    float width = c_PIC_WIDTH * mScale.x;
+    float height = c_PIC_HEIGHT * mScale.y;
 
-    for (int i = i7; i >= 0; i--) {
-        int row_idx = i * 0x42;
+    for (int currY = y - 1; currY >= 0; currY--) {
+        for (int currX = 0; currX < x; currX++) {
+            bgData_t *curr = mpBgData + currX + currY * 66;
 
-        int i4 = i7 - i;
-        for (int j = 0; j < a; j++) {
-            bgData_t * data = &mpBgData[row_idx + j];
-
-            data->m_0.x = GetModelBasePosX(j, b, f2);
-            float scroll = GetScrollBaseY();
-            data->m_0.y = (f1 * 0.5f - 256.0f) + f1 * (float)((-i - 2u) + b) + scroll;
+            curr->m_0.x = GetModelBasePosX(currX, x, width);
+            curr->m_0.y = GetScrollBaseY() + (-currY - 2 + y) * height + (height * 0.5f - 256.0f);
 
             if (mIsBgB == 0) {
-                data->m_0.z = -7000.0f;
+                curr->m_0.z = -7000.0f;
             } else {
-                data->m_0.z = -8000.0f;
+                curr->m_0.z = -8000.0f;
             }
+            curr->m_0.z -= (y - 1 - currY + currX) * l_offsetZ;
 
-            data->m_0.z -= i4 * l_offsetZ;
-            data->m_c = 1;
+            curr->m_c = 1;
         }
     }
 }
-void daFarBG_c::fn_80117710(int a, int b) {
-    float f1 = c_PIC_HEIGHT * mScale.y;
-    float f2 = c_PIC_WIDTH * mScale.x;
-    int i6 = b - 1;
-    u32 u7 = 0;
 
-    for (int i = i6; i >= 0; i--, u7++) {
-        int row_idx = i * 0x42;
+void daFarBG_c::fn_80117710(int x, int y) {
+    float width = c_PIC_WIDTH * mScale.x;
+    float height = c_PIC_HEIGHT * mScale.y;
 
-        int i8 = i6 - i;
-        for (int j = 0; j < a; j++, i8++) {
-            bgData_t * data = &mpBgData[row_idx + j];
+    int row = 0;
+    for (int currY = y - 1; currY >= 0; currY--, row++) {
+        for (int currX = 0; currX < x; currX++) {
+            bgData_t *curr = mpBgData + currX + currY * 66;
 
-            data->m_0.x = GetModelBasePosX(j, b, f2);
-            float scroll = GetScrollBaseY();
-            data->m_0.y = (f1 * 0.5f - 256.0f) + f1 * (float)((b - 2u) - i) + scroll;
+            curr->m_0.x = GetModelBasePosX(currX, x, width);
+            curr->m_0.y = GetScrollBaseY() + (y - 2 - currY) * height + (height * 0.5f - 256.0f);
 
             if (mIsBgB == 0) {
-                data->m_0.z = -7000.0f;
+                curr->m_0.z = -7000.0f;
             } else {
-                data->m_0.z = -8000.0f;
+                curr->m_0.z = -8000.0f;
             }
+            curr->m_0.z -= (y - 1 - currY + currX) * l_offsetZ;
 
-            data->m_0.z -= i8 * l_offsetZ;
-
-            // if (u7 >> 31) = 1:
-            //      ((u7 & 1) ^ -1) + 1 == 1
-            //      ~(u7 & 1) == 0
-            //      (u7 & 1) == 0
-            // else:
-            //      ((u7 & 1) ^ -0) + 0 == 1
-            //      ((u7 & 1) ^ 0) == 1
-            //      (u7 & 1) == 1
-            if ((u7 & 1) == 1 ^ (u7 >> 31)) {
-                data->m_c = 1;
+            if (row % 2 == 1) {
+                curr->m_c = 1;
             } else {
-                data->m_c = 0;
+                curr->m_c = 0;
             }
         }
     }
 }
-void daFarBG_c::fn_801178F0(int a, int b) {
-    float f1 = c_PIC_HEIGHT * mScale.y;
-    float f2 = c_PIC_WIDTH * mScale.x;
 
-    float f8 = GetScrollBaseY();
-    float step = c_PIC_HEIGHT;
-    float zero = 0.0f;
-    f8 = f1 * 0.5f + mOffset.y + f8;
-    for (float f9 = f8; f9 < zero; f9 += step) {}
+void daFarBG_c::fn_801178F0(int x, int y) {
+    float width = c_PIC_WIDTH * mScale.x;
+    float height = c_PIC_HEIGHT * mScale.y;
 
-    int i5 = b - 1;
-    f8 -= mOffset.y;
-    int i6 = i5 / 2;
+    float yOffset = GetScrollBaseY() + height * 0.5f;
 
-    for (; i5 >= 0; i5--) {
-        int row_idx = i5 * 0x42;
+    yOffset += mOffset.y;
 
-        int i7 = 0;
-        for (int j = 0; j < a; j++, i7++) {
-            bgData_t * data = &mpBgData[row_idx + i7];
+    float tmp = yOffset;
+    while (tmp < 0.0f) {
+        tmp += c_PIC_HEIGHT;
+    }
 
-            if (i5 == i6) {
-                data->m_c = 1;
-                data->m_0.y = f8;
-            } else if (i5 > i6) {
-                data->m_c = 2;
-                data->m_0.y = f8 - f1 * (float)(i5 - i6);
+    yOffset -= mOffset.y;
+
+    int mid = (y - 1) / 2;
+    int row = 0;
+    for (int currY = y - 1; currY >= 0; currY--, row++) {
+        for (int currX = 0; currX < x; currX++) {
+            bgData_t *curr = mpBgData + currX + currY * 66;
+
+            if (currY == mid) {
+                curr->m_c = 1;
+                curr->m_0.y = yOffset;
+            } else if (currY > mid) {
+                curr->m_c = 2;
+                curr->m_0.y = yOffset - height * (currY - mid);
             } else {
-                data->m_c = 0;
-                data->m_0.y = f8 + f1 * (float)(i6 - i5);
+                curr->m_c = 0;
+                curr->m_0.y = yOffset + height * (mid - currY);
             }
 
-            data->m_0.x = GetModelBasePosX(j, b, f2);
+            curr->m_0.x = GetModelBasePosX(currX, x, width);
 
             if (mIsBgB == 0) {
-                data->m_0.z = -7000.0f;
+                curr->m_0.z = -7000.0f;
             } else {
-                data->m_0.z = -8000.0f;
+                curr->m_0.z = -8000.0f;
             }
 
-            if (i5 == i6) {
-                data->m_0.z -= j * l_offsetZ;
+            if (currY == mid) {
+                curr->m_0.z -= l_offsetZ * currX;
             } else {
-                data->m_0.z -= (j + 1) * l_offsetZ;
+                curr->m_0.z -= l_offsetZ * (currX + 1);
             }
-
         }
     }
 }
 
 bool daFarBG_c::GetModelNumXY(int &a, int &b) {
-    float width = dBg_c::m_bg_p->getZoneWidth();
-    float height = dBg_c::m_bg_p->getZoneHeight();
+    float w = dBg_c::m_bg_p->getZoneRight() - dBg_c::m_bg_p->getZoneLeft();
+    float h = dBg_c::m_bg_p->getZoneTop() - dBg_c::m_bg_p->getZoneBottom();
 
-    int x = width / daFarBG_c::c_PIC_WIDTH;
-    int y = height / daFarBG_c::c_PIC_HEIGHT;
+    int x = w / daFarBG_c::c_PIC_WIDTH;
+    int y = h / daFarBG_c::c_PIC_HEIGHT;
 
     if (x == 0) {
         x = 1;
     }
-
     if (y == 0) {
         y = 1;
     }
@@ -762,19 +724,20 @@ bool daFarBG_c::GetModelNumXY(int &a, int &b) {
 
 
 void daFarBG_c::InitBgData() {
-    bgData_t * array = new bgData_t[34 * 22 * 3];
-    mpBgData = array;
+    mpBgData = (typeof(mpBgData)) new bgData_t[66][34];
 
-    for (u32 i = 0; i < 34; i++) {
-        for (int j = 22; j != 0; j--) {
-            for (int k = 0; k < 3; k++, array++) {
-                if (mIsBgB == 0) {
-                    array[0].m_0.set(0.0f, 0.0f, -7000.0f);
-                } else if (mIsBgB == 1) {
-                    array[0].m_0.set(0.0f, 0.0f, -8000.0f);
-                }
-                array[0].m_c = 9;
+    bgData_t *curr = (bgData_t *) mpBgData;
+
+    for (u32 y = 0; y < 34; y++) {
+        for (u32 x = 0; x < 66; x++) {
+            if (mIsBgB == 0) {
+                curr->m_0.set(0.0f, 0.0f, -7000.0f);
+            } else if (mIsBgB == 1) {
+                curr->m_0.set(0.0f, 0.0f, -8000.0f);
             }
+            curr->m_c = 9;
+
+            curr++;
         }
     }
 
@@ -867,9 +830,8 @@ void daFarBG_c::CreateHeap() {
     }
 
     if (mStaticBGIdx != 3) {
-        daFarBG_c::mdlData_t * mdl_data = new daFarBG_c::mdlData_t();
-        mpStaticBackground = mdl_data;
-        mdl_data->mModel = nullptr;
+        mpStaticBackground = new daFarBG_c::mdlData_t();
+        mpStaticBackground->mModel = nullptr;
         mpStaticBackground->mAnmChr = nullptr;
         mpStaticBackground->mAnmClr = nullptr;
         mpStaticBackground->mAnmSrt = nullptr;
@@ -983,38 +945,35 @@ void daFarBG_c::CalcScrollBG() {
             break;
         }
         case 0:
-        case 1: {
-
+        case 1:
             if (isZero(mCenterXPos)) {
-                zero.x = screen_center.x - mCenterXPos;
+                zero.x = screen_center.x - bg_c->getZoneLeft();
             } else {
-                zero.x = screen_center.x - bg_c->mZoneLeft;
+                zero.x = screen_center.x - mCenterXPos;
             }
             break;
-        }
     }
 
     switch (GetScrollBaseType()) {
         case SCROLL_0:
-            zero.y = (screen_center.y - bg_param->mSize.y * 0.5f) - GetScrollBaseY();
+            zero.y = (screen_center.y - bg_param->ySize() / 2.0f) - GetScrollBaseY();
             break;
         case SCROLL_1:
-            zero.y = (screen_center.y + bg_param->mSize.y * 0.5f) - GetScrollBaseY();
+            zero.y = (screen_center.y + bg_param->ySize() / 2.0f) - GetScrollBaseY();
             break;
         case SCROLL_2:
             zero.y = screen_center.y - GetScrollBaseY();
             break;
     }
 
-    for (int i = 3; i != 0; i--) {
-
-        m_498[i].x *= zero.x * mScale.x;
-        m_498[i].y *= zero.y * mScale.y;
-        m_498[i].z *= zero.z * mScale.z;
+    for (int i = 0; i < 6; i++) {
+        m_498[i].x = zero.x * mScale.x * m_438[i].x;
+        m_498[i].y = zero.y * mScale.y * m_438[i].y;
+        m_498[i].z = 0.0f;
 
         switch (dScStage_c::m_loopType) {
             case 2: {
-                while (c_PIC_WIDTH + 100.0f < std::fabs(m_498[i].x)) {
+                while (std::fabs(m_498[i].x) > c_PIC_WIDTH + 100.0f) {
                     if (m_498[i].x > 0.0f) {
                         m_498[i].x -= c_PIC_WIDTH;
                     } else {
@@ -1024,33 +983,15 @@ void daFarBG_c::CalcScrollBG() {
                 break;
             }
         }
-
-        m_498[i + 1].x *= zero.x * mScale.x;
-        m_498[i + 1].y *= zero.y * mScale.y;
-        m_498[i + 1].z *= zero.z * mScale.z;
-
-        switch (dScStage_c::m_loopType) {
-            case 2: {
-                while (c_PIC_WIDTH + 100.0f < std::fabs(m_498[i + 1].x)) {
-                    if (m_498[i + 1].x > 0.0f) {
-                        m_498[i + 1].x -= c_PIC_WIDTH;
-                    } else {
-                        m_498[i + 1].x += c_PIC_WIDTH;
-                    }
-                }
-                break;
-            }
-        }
-
     }
 }
 
 void daFarBG_c::InitFrustum() {
     mMtx_c mtx;
 
-    float f1 = 0.5f * dBgParameter_c::ms_Instance_p->mSize.y;
+    float f1 = 0.5f * dBgParameter_c::ms_Instance_p->ySize();
     float neg_f1 = -f1;
-    float f2 = 0.5f * -dBgParameter_c::ms_Instance_p->mSize.x;
+    float f2 = 0.5f * -dBgParameter_c::ms_Instance_p->xSize();
     float neg_f2 = -f2;
     float f3 = 1.0f;
     float f4 = 20000.0f;
@@ -1386,23 +1327,24 @@ void daFarBG_c::effectExecute() {
 
 void daFarBG_c::CalcBasePosAndMtx() {
     dBgParameter_c * bg_param = dBgParameter_c::ms_Instance_p;
-    daFarBG_c::bgData_t * cur;
-    u16 u6 = 0;
 
-    for (int i7 = ARRAY_SIZE(mpBgData), i = 0; i7 != 0; i7--, i++) {
-        cur = &mpBgData[i];
-        if ((cur->m_c != 9) && (m_5f8 == u6 % 66)) {
-            m_5fa = u6 / 66;
+    bgData_t *cur = mpBgData;
+    for (u16 i = 0; i < 66 * 34; i++) {
+        if (cur->m_c != 9 && m_5f8 == i % 66) {
+            m_5fa = i / 66;
             break;
         }
+        cur++;
     }
 
     float f1 = cur->m_0.x + mOffset.x;
     float f2 = cur->m_0.y + mOffset.y;
-    float f9 = bg_param->mSize.y;
+    float zoomMagnif = GetZoomMagnif();
+    bool zero = isZero(zoomMagnif);
     mVec3_c local_534 = GetCameraPos();
+    float f9 = bg_param->ySize();
 
-    if (isZero(GetZoomMagnif()) != false) {
+    if (zero) {
         m_5fc.trans(mVec3_c(local_534));
         m_5fc.concat(mMtx_c::createTrans(-m_498[0].x, -m_498[0].y, 0.0f));
         m_5fc.concat(mMtx_c::createScale(mScale.x, mScale.y, 1.0f));
@@ -1417,8 +1359,8 @@ void daFarBG_c::CalcBasePosAndMtx() {
         m_5fc.concat(mMtx_c::createTrans(f1, f2, 0.0f));
     } else {
         local_534.x -= mCenterXPos;
-        local_534.y -= 0.5f * bg_param->mSize.y;
         local_534.z = 0.0f;
+        local_534.y -= bg_param->ySize() * 0.5f;
 
         if (mCenterMode != 0) {
             m_5fc.trans(mVec3_c(local_534));

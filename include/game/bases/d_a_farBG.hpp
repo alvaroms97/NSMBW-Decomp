@@ -12,7 +12,7 @@ bool fn_80081BE0(int, int, int);
 int fn_80089030();
 
 namespace d3d {
-    void SetResTevColorAll(nw4r::g3d::ResMdl *, GXTevRegID, GXColor);
+    void SetResTevColorAll(nw4r::g3d::ResMdl, GXTevRegID, GXColor);
     void setNodeVisibility(m3d::bmdl_c *, int, int);
 }
 
@@ -38,6 +38,9 @@ const float l_speed_ratiodt[] = {
 
 class daFarBG_HIO_c {
 public:
+    daFarBG_HIO_c();
+    ~daFarBG_HIO_c() {}
+
     float m_00;
     float m_04;
     float m_08;
@@ -56,7 +59,7 @@ public:
     u8 m_21;
     bool mShouldNotSetCullingInfo;
     u8 m_23;
-    u16 m_24;
+    s16 m_24;
     u8 m_26;
     u8 m_27;
     u8 m_28;
@@ -65,15 +68,12 @@ public:
     u32 m_2c;
     u8 m_30;
     u8 m_pad_31[3];
-    GXColor m_34;
-    GXColor m_38;
+    nw4r::ut::Color m_34;
+    nw4r::ut::Color m_38;
     u8 m_3c;
     u8 m_3d;
     u8 m_3e;
-    u8 m_3f[2][4][8];
-
-    daFarBG_HIO_c();
-    ~daFarBG_HIO_c() {}
+    u8 m_3f[64];
 };
 
 
@@ -109,7 +109,7 @@ public:
     class bgData_t {
         public:
         mVec3_c m_0;
-        u32 m_c;
+        int m_c;
 
         bgData_t() {}
         ~bgData_t() {}
@@ -133,7 +133,7 @@ public:
 
     class mdlData_t {
     public:
-        m3d::mdl_c * mModel;
+        m3d::mdl_c *mModel;
         m3d::anmChr_c * mAnmChr;
         m3d::anmMatClr_c * mAnmClr;
         m3d::anmTexSrt_c * mAnmSrt;
@@ -150,7 +150,7 @@ public:
 
     nodeCallback_c mCallback;
     dHeapAllocator_c mAllocator;
-    bgData_t * mpBgData; ///< 3D array of 34 * 22 * 3 bgData_t entries
+    bgData_t *mpBgData;
     sBgData * mpBgEntries[2];
     mdlData_t * mpBackgrounds[3][9];
     mdlData_t * mpStaticBackground;
@@ -183,6 +183,7 @@ public:
     float m_630;
     float m_634;
     float m_638;
+    u8 mPad5[0x1c];
     u16 m_658[100];
 
     daFarBG_c() : mCallback(this) {}

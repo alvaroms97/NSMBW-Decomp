@@ -4,6 +4,7 @@
 #include <game/bases/d_fader.hpp>
 #include <game/mLib/m_vec.hpp>
 #include <constants/game_constants.h>
+#include <lib/egg/gfxe/eggScreen.h>
 #include <lib/egg/gfxe/eggLookAtCamera.h>
 
 class dCamera_c : public dBase_c {

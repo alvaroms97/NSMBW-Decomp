@@ -49,8 +49,10 @@ public:
     float getDispScale() { return mDispScale; }
     float getPrevDispScale() { return mPrevDispScale; }
 
-    float getZoneHeight() const { return mZoneTop - mZoneBottom; }
-    float getZoneWidth() const { return mZoneRight - mZoneLeft; }
+    float getZoneTop() const { return mZoneTop; }
+    float getZoneBottom() const { return mZoneBottom; }
+    float getZoneLeft() const { return mZoneLeft; }
+    float getZoneRight() const { return mZoneRight; }
 
     static dBg_c *m_bg_p;
 };
