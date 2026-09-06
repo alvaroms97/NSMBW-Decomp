@@ -264,7 +264,7 @@ void daFarBG_c::CreateModel(unsigned short bg_id, daFarBG_c::mdlData_t* mdl_data
     mdl_data->mModel->create(resMdl, &mAllocator, 0x60, 1, nullptr);
 
     for (int i = 0; i < resMdl.GetResNodeNumEntries(); i++) {
-        if (!memcmp(resMdl.GetResNode(i).GetName(), "Trans", 6)) {
+        if (!memcmp(resMdl.GetResNode(i).GetName(), "Trans_", 6)) {
             mdl_data->mIsTranslation = true;
             break;
         }
