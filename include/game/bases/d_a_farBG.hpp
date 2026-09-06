@@ -1,6 +1,7 @@
 #pragma once
 
 #include <game/bases/d_actor.hpp>
+#include <game/bases/d_cd_data.hpp>
 #include <game/bases/d_heap_allocator.hpp>
 #include <game/bases/d_effect.hpp>
 #include <lib/egg/util/eggEffect.hpp>
@@ -114,22 +115,6 @@ public:
         bgData_t() {}
         ~bgData_t() {}
     };
-
-    /// @unofficial
-    struct sBgData {
-        u16 mID;
-        u16 mXScrollRate;
-        u16 mYScrollRate;
-        s16 mYOffset;
-        s16 mXOffset;
-        u16 mFile1;
-        u16 mFile2;
-        u16 mFile3;
-        u8 mPad0[2];
-        u16 mScale;
-        u8 mPad1[4];
-    };
-
 
     class mdlData_t {
     public:
@@ -246,6 +231,6 @@ public:
 
 /// Probably belongs in a different TU
 /// @unofficial
-daFarBG_c::sBgData * fn_80081C40(int);
+sBgData * fn_80081C40(int);
 
 

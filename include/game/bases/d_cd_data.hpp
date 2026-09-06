@@ -49,7 +49,16 @@ struct sBlock4Data {
 /// @unofficial
 struct sBgData {
     u16 mID;
-    u8 mPad[0x16];
+    u16 mXScrollRate;
+    u16 mYScrollRate;
+    s16 mYOffset;
+    s16 mXOffset;
+    u16 mFile1;
+    u16 mFile2;
+    u16 mFile3;
+    u8 mPad1[2];
+    u16 mScale;
+    u8 mPad2[4];
 };
 
 /// @unofficial

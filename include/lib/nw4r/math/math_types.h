@@ -71,6 +71,7 @@ struct VEC3;
 VEC3* VEC3Add(VEC3* pOut, const VEC3* pA, const VEC3* pB);
 VEC3* VEC3Sub(VEC3* pOut, const VEC3* pA, const VEC3* pB);
 VEC3* VEC3Scale(VEC3* pOut, const VEC3* pIn, f32 scale);
+float VEC3LenSq(const VEC3* pVec);
 
 // Provides a POD type that can be upcasted to the real structure.
 // (Has the added benefit of forcing struct copies to use lwz/stw.)
@@ -109,7 +110,7 @@ struct VEC3 : _VEC3 {
     }
 
     f32 LenSq() const {
-        return x * x + y * y + z * z;
+        return VEC3LenSq(this);
     }
 
     VEC3 operator-() const {

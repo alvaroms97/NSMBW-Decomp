@@ -803,17 +803,17 @@ void daFarBG_c::CreateHeap() {
 
             switch (i) {
                 case 0: {
-                    daFarBG_c::sBgData * bgdata = GetMyBgDataP();
+                    sBgData * bgdata = GetMyBgDataP();
                     CreateModel(bgdata->mFile1, mpBackgrounds[i][j], b3);
                     break;
                 }
                 case 1: {
-                    daFarBG_c::sBgData * bgdata = GetMyBgDataP();
+                    sBgData * bgdata = GetMyBgDataP();
                     CreateModel(bgdata->mFile2, mpBackgrounds[i][j], b3);
                     break;
                 }
                 case 2: {
-                    daFarBG_c::sBgData * bgdata = GetMyBgDataP();
+                    sBgData * bgdata = GetMyBgDataP();
                     CreateModel(bgdata->mFile3, mpBackgrounds[i][j], b3);
                     break;
                 }
@@ -874,7 +874,7 @@ void daFarBG_c::CreateHeap() {
     m_438[0].x = f9;
     m_438[0].y = f10;
 
-    daFarBG_c::sBgData *other = GetOtherBgDataP();
+    sBgData *other = GetOtherBgDataP();
     if (other == nullptr) {
         for (int i = 1; i < m_5e4; i++) {
             m_438[i].x = f9;
@@ -1002,32 +1002,30 @@ void daFarBG_c::InitFrustum() {
 }
 
 void daFarBG_c::SetCullingInfo(m3d::smdl_c & model) {
+    mAABB_c aabb;
+    mAABB_c volume;
+
     nw4r::g3d::ResMdl resMdl = model.getResMdl();
-    mAABB_c local_50;
-    mAABB_c local_38;
 
     for (unsigned long i = 0; i < resMdl.GetResNodeNumEntries(); i++) {
         nw4r::g3d::ResNode resNode = resMdl.GetResNode(i);
 
-        local_50.min = resNode.GetVolumeMin();
-        local_50.max = resNode.GetVolumeMax();
-        bool b1 = false;
+        volume.min = resNode.GetVolumeMin();
+        volume.max = resNode.GetVolumeMax();
 
-        if (local_50.min == local_50.max) {
-            b1 = true;
+        if (volume.min == volume.max) {
+            continue;
         }
 
-        if (!b1) {
-            // TODO: Figure this stuff out...
-            nw4r::g3d::ScnMdl * mdl = nw4r::g3d::ScnMdl::DynamicCast<nw4r::g3d::ScnMdl>(model.getScn());
+        nw4r::g3d::ScnMdl *mdl = nw4r::g3d::ScnMdl::DynamicCast<nw4r::g3d::ScnMdl>(model.getScn());
 
-            local_38.Set(&local_50, mdl->GetMtxPtr(mdl->MTX_LOCAL));
+        nw4r::math::MTX34 *worldMtx = &mdl->GetWldMtxArray()[resNode.GetMtxID()];
+        aabb.Set(&volume, worldMtx);
 
-            if (mFrustum.intersectAABB(&local_38)) {
-                d3d::setNodeVisibility(&model, i, 1);
-            } else {
-                d3d::setNodeVisibility(&model, i, 0);
-            }
+        if (mFrustum.intersectAABB(&aabb)) {
+            d3d::setNodeVisibility(&model, i, 1);
+        } else {
+            d3d::setNodeVisibility(&model, i, 0);
         }
     }
 }
@@ -1038,27 +1036,29 @@ mVec3_c daFarBG_c::GetScrollDiff(int idx) {
 
 void daFarBG_c::nodeCallback_c::timingB(unsigned long nodeIdx, nw4r::g3d::WorldMtxManip* b, nw4r::g3d::ResMdl resMdl) {
     nw4r::g3d::ResNode resNode = resMdl.GetResNode(nodeIdx);
-    nw4r::g3d::ResName resName = resNode.GetResName();
     mMtx_c mtx;
-    mMtx_c mtx2;
 
-    if (!memcmp(resName.GetName(), "Rotate", 6)) {
+    const char *rotateName = resNode.GetName();
+    if (!memcmp(rotateName, "Rotate", 6)) {
         b->GetMatrix(&mtx);
 
-        float f2 = dBgParameter_c::ms_Instance_p->mSize.x * 0.5f;
-        float f3 = dBgParameter_c::ms_Instance_p->mPos.x + f2;
+        float f2 = dBgParameter_c::ms_Instance_p->xSize() * 0.5f;
+        float f3 = f2 + dBgParameter_c::ms_Instance_p->xStart();
+
+        float tx = mtx.getTranslation().x;
+        float ty = mtx.getTranslation().y;
+
         float f5 = 5000.0f;
         float f4 = 0.0f;
-
         if (nodeIdx < 100) {
-            if (f3 <= mtx._03) {
-                f4 = (mtx._03 - f3) / f2;
+            if (tx < f3) {
+                f4 = -((f3 - tx) / f2);
             } else {
-                f4 = -((f3 - mtx._03) / f2);
+                f4 = (tx - f3) / f2;
             }
         }
 
-        switch (resName.GetName()[6]) {
+        switch (rotateName[6]) {
             case '0':
                 f5 = 2000.0f;
                 break;
@@ -1094,11 +1094,15 @@ void daFarBG_c::nodeCallback_c::timingB(unsigned long nodeIdx, nw4r::g3d::WorldM
 
         mtx.YrotM(f4 * f5);
         b->SetMatrix(mtx);
-    } else if (!memcmp(resName.GetName(), "Scroll", 6)) {
-        b->GetMatrix(&mtx);
-        mVec3_c scroll(0.0f, 0.0f, 0.0f);
+        return;
+    }
 
-        switch (resName.GetName()[6]) {
+    const char *scrollName = resNode.GetName();
+    if (!memcmp(scrollName, "Scroll", 6)) {
+        b->GetMatrix(&mtx);
+
+        mVec3_c scroll(0.0f, 0.0f, 0.0f);
+        switch (scrollName[6]) {
             case 'A':
                 scroll = mpParent->GetScrollDiff(0);
                 break;
@@ -1119,8 +1123,9 @@ void daFarBG_c::nodeCallback_c::timingB(unsigned long nodeIdx, nw4r::g3d::WorldM
                 break;
         }
 
-        mtx.trans(scroll);
+        mtx.trans(scroll.x, scroll.y, 0.0f);
 
+        mMtx_c mtx2;
         b->GetMatrix(&mtx2);
         mtx.concat(mtx2);
         b->SetMatrix(mtx);
@@ -1128,11 +1133,11 @@ void daFarBG_c::nodeCallback_c::timingB(unsigned long nodeIdx, nw4r::g3d::WorldM
 }
 
 
-daFarBG_c::sBgData * daFarBG_c::GetMyBgDataP() {
+sBgData * daFarBG_c::GetMyBgDataP() {
     return mpBgEntries[mIsBgB];
 }
 
-daFarBG_c::sBgData * daFarBG_c::GetOtherBgDataP() {
+sBgData * daFarBG_c::GetOtherBgDataP() {
     if (mIsBgB == 0) {
         return mpBgEntries[1];
     } else {
@@ -1142,8 +1147,8 @@ daFarBG_c::sBgData * daFarBG_c::GetOtherBgDataP() {
 
 void daFarBG_c::UpdateAnim() {
     if (!dGameCom::isGameStop(dGameCom::GAME_STOP_ANY) && !(dActor_c::mExecStop & 0xF)) {
-        u32 r30 = 0;
         u32 r31 = 0;
+        u32 r30 = 0;
 
         if (dActorMng_c::m_instance->mStartVolcanoEruptions != 0) {
             r31 = 1;
@@ -1163,30 +1168,29 @@ void daFarBG_c::UpdateAnim() {
                             mpBackgrounds[i][j]->mAnmChr->setRate(1.0f);
                         }
 
-                        if ((m_62c != 0) && (mpBackgrounds[i][j]->mAnmSrt != nullptr)) {
-                            if (r30) {
-                                m_638 = m_630;
-                            }
-
-                            if (m_634 < 0.0f) {
-                                float f13 = m_638 - m_634;
-
-                                if (f13 >= 0.0f) {
-                                    m_638 = f13;
-                                } else {
-                                    m_638 = 0.0f;
+                        if (m_62c) {
+                            m3d::anmTexSrt_c *anmSrt = mpBackgrounds[i][j]->mAnmSrt;
+                            if (anmSrt != nullptr) {
+                                if (r30) {
+                                    m_638 = m_630;
                                 }
-                            } else {
-                                float f13 = m_638 + m_634;
 
-                                if ((f13 >= mpBackgrounds[i][j]->mAnmSrt->getFrameMax(0))) {
-                                    m_638 = f13;
+                                if (m_634 >= 0.0f) {
+                                    if (m_638 + m_634 >= anmSrt->getFrameMax(0)) {
+                                        m_638 = anmSrt->getFrameMax(0);
+                                    } else {
+                                        m_638 = m_638 + m_634;
+                                    }
                                 } else {
-                                    m_638 = mpBackgrounds[i][j]->mAnmSrt->getFrameMax(0);
+                                    if (m_638 + m_634 >= 0.0f) {
+                                        m_638 = m_638 + m_634;
+                                    } else {
+                                        m_638 = 0.0f;
+                                    }
                                 }
-                            }
 
-                            mpBackgrounds[i][j]->mAnmSrt->setFrame(m_638, 0);
+                                anmSrt->setFrame(m_638, 0);
+                            }
                         }
 
                         mpBackgrounds[i][j]->mModel->play();
@@ -1220,30 +1224,25 @@ void daFarBG_c::UpdateAnim() {
 }
 
 bool daFarBG_c::checkResource() {
-    char local_58[64];
-    char local_98[64];
-    char local_d8[64];
-    char local_118[64];
-    char local_158[64];
-    nw4r::g3d::ResFile pnVar3;
-    nw4r::g3d::ResFile pnVar2;
+    char arcName[3][64];
+    char resPath[64];
+    char fullArcName[64];
 
-    daFarBG_c::sBgData *bg_data = GetMyBgDataP();
+    sBgData *bg_data = GetMyBgDataP();
+
     bool ret = true;
 
-    nw4r::g3d::ResFile pnVar4;
+    nw4r::g3d::ResFile file1 = GetRes(bg_data->mFile1, arcName[0], resPath, fullArcName);
+    nw4r::g3d::ResFile file2 = GetRes(bg_data->mFile2, arcName[1], resPath, fullArcName);
+    nw4r::g3d::ResFile file3 = GetRes(bg_data->mFile3, arcName[2], resPath, fullArcName);
 
-    pnVar2 = GetRes(bg_data->mFile1, local_d8, local_118, local_158);
-    pnVar3 = GetRes(bg_data->mFile2, local_98, local_118, local_158);
-    pnVar4 = GetRes(bg_data->mFile3, local_58, local_118, local_158);
-
-    if ((bg_data->mFile1 != 0) && (!pnVar2.IsValid())) {
+    if ((bg_data->mFile1 != 0) && (!file1.IsValid())) {
         ret = false;
     }
-    if ((bg_data->mFile2 != 0) && (!pnVar3.IsValid())) {
+    if ((bg_data->mFile2 != 0) && (!file2.IsValid())) {
         ret = false;
     }
-    if ((bg_data->mFile3 != 0) && (!pnVar4.IsValid())) {
+    if ((bg_data->mFile3 != 0) && (!file3.IsValid())) {
         ret = false;
     }
 
@@ -1251,10 +1250,12 @@ bool daFarBG_c::checkResource() {
 }
 
 mVec2_c daFarBG_c::GetScreenCenterPos() {
-    dBgParameter_c * bg_param = dBgParameter_c::ms_Instance_p;
+    dBgParameter_c *bgParam = dBgParameter_c::ms_Instance_p;
+
     mVec2_c ret;
-    ret.x = bg_param->mPos.x + (bg_param->mSize.x * 0.5f);
-    ret.y = bg_param->mPos.y - (bg_param->mSize.y * 0.5f);
+    ret.x = bgParam->xStart() + (bgParam->xSize() / 2.0f);
+    ret.y = bgParam->yStart() - (bgParam->ySize() / 2.0f);
+
     return ret;
 }
 
@@ -1288,19 +1289,19 @@ void daFarBG_c::effectExecute() {
     }
 
     mVec2_c local_90 = GetScreenCenterPos();
-    mVec3_c local_70;
-    mVec3_c local_64(local_90, 0.0f);
     mVec3_c local_58;
+    mVec3_c local_64(local_90, 0.0f);
+    mVec3_c local_70;
     float f1 = 1e6f;
 
     for (int i = 0; i < (int)ARRAY_SIZE(mpBackgrounds); i++) {
         for (int j = 0; j < (int)ARRAY_SIZE(mpBackgrounds[0]); j++) {
-            mdlData_t * bg = mpBackgrounds[i][j];
-            if ((bg->mModel != nullptr) && bg->m_11 && bg->mIsEnabled) {
-                for (int k = 0; k < (int)ARRAY_SIZE(bg->m_12); k++) {
+            m3d::mdl_c *model = mpBackgrounds[i][j]->mModel;
+            if ((model != nullptr) && mpBackgrounds[i][j]->m_11 && mpBackgrounds[i][j]->mIsEnabled) {
+                for (int k = 0; k < (int)ARRAY_SIZE(mpBackgrounds[i][j]->m_12); k++) {
                     if (r26) {
-                        fn_80119370(bg->mModel, m_5f4[k], local_58);
-                        bg->createKazanEffect(local_58, k);
+                        fn_80119370(model, m_5f4[k], local_58);
+                        mpBackgrounds[i][j]->createKazanEffect(local_58, k);
 
                         local_70.x = local_58.x - local_90.x;
                         local_70.y = local_58.y - local_90.y;
@@ -1310,8 +1311,8 @@ void daFarBG_c::effectExecute() {
                             f1 = local_70.LenSq();
                             local_64 = local_58;
                         }
-                    } else if (bg->m_12[k] != 0) {
-                        fn_80119370(bg->mModel, m_5f4[k], local_58);
+                    } else if (mpBackgrounds[i][j]->m_12[k] != 0) {
+                        fn_80119370(model, m_5f4[k], local_58);
                         mpBackgrounds[i][j]->updateKazanEffect(local_58, k);
                     }
                 }
@@ -1320,8 +1321,7 @@ void daFarBG_c::effectExecute() {
     }
 
     if (r26) {
-        dAudio::SndObjctCmnMap_c * tmp = dAudio::g_pSndObjMap;
-        tmp->startSound(SE_OBJ_KAZAN_ERUPTION, dAudio::cvtSndObjctPos(local_64), 0);
+        dAudio::g_pSndObjMap->startSound(SE_OBJ_KAZAN_ERUPTION, local_64, 0);
     }
 }
 
@@ -1427,9 +1427,9 @@ void daFarBG_c::ReserveModel() {
         0.0f
     );
 
-    for (int u9 = 0; u9 < 0x22; u9++) {
-        for (int uVar8 = 0; uVar8 < 0x42; uVar8++) {
-            daFarBG_c::bgData_t * bg = &mpBgData[u9 * 0x42 + uVar8];
+    for (int y = 0; y < 34; y++) {
+        for (int x = 0; x < 66; x++) {
+            daFarBG_c::bgData_t *bg = mpBgData + x + y * 66;
 
             int u7 = bg->m_c;
             if (u7 == 9) {
@@ -1438,13 +1438,13 @@ void daFarBG_c::ReserveModel() {
 
             bool b3 = false;
             daFarBG_c::mdlData_t *model = mpBackgrounds[bg->m_c][0];
-            if ((u7 == mStaticBGIdx) && ((uVar8 & 0xFFFF) == 1)) {
+            if ((u7 == mStaticBGIdx) && ((x & 0xFFFF) == 1)) {
                 model = mpStaticBackground;
             }
 
             mMtx_c local_c0 = m_5fc;
-            local_c0._03 += mScale.x * c_PIC_WIDTH * (float)((uVar8 & 0xFFFF) - m_5f8);
-            local_c0._13 += mScale.y * c_PIC_HEIGHT * (float)((u9 & 0xFFFF) - m_5fa);
+            local_c0._03 += mScale.x * c_PIC_WIDTH * (float)(x - m_5f8);
+            local_c0._13 += mScale.y * c_PIC_HEIGHT * (float)(y - m_5fa);
 
             for (int u6 = 0; u6 < 6; u6++) {
                 if ((m_5e8[u7] & (1 << u6)) != 0) {
@@ -1508,9 +1508,8 @@ mVec3_c daFarBG_c::GetCameraPos() {
 
     if (isZero(GetZoomMagnif())) {
         /// [actually unreachable - GetZoomMagnif() never returns a value < 0.25f]
-        ret.x = bg_param->mPos.x;
-        float size = bg_param->mSize.y;
-        ret.y = bg_param->mPos.y - size;
+        ret.x = bg_param->xStart();
+        ret.y = bg_param->yEnd();
         ret.z = 0.0f;
     } else {
         ret = dScStage_c::getCamera(0)->mCenterPos;
