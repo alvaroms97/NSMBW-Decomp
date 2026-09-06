@@ -546,7 +546,8 @@ void daFarBG_c::fn_801171F0(int x, int y) {
     float width = c_PIC_WIDTH * mScale.x;
     float height = c_PIC_HEIGHT * mScale.y;
 
-    for (int currY = 0; currY < 2; currY++) {
+    y = 2;
+    for (int currY = 0; currY < y; currY++) {
         for (int currX = 0; currX < x; currX++) {
             bgData_t *curr = mpBgData + currX + currY * 66;
 
@@ -1413,24 +1414,28 @@ void daFarBG_c::ReserveModel() {
         mpStaticBackground->mIsEnabled = false;
     }
 
+    dBgParameter_c *bgParam = dBgParameter_c::ms_Instance_p;
+
+    mMtx_c local_c0;
     mVec3_c local_100;
     mVec3_c local_10c;
-    int local_130[3] = { 0 };
 
-    local_100.set(
-        dBgParameter_c::ms_Instance_p->mPos.x,
-        dBgParameter_c::ms_Instance_p->mPos.y - dBgParameter_c::ms_Instance_p->mSize.y,
-        0.0f
-    );
-    local_10c.set(
-        local_100.x + dBgParameter_c::ms_Instance_p->mSize.x,
-        dBgParameter_c::ms_Instance_p->mPos.y,
-        0.0f
-    );
+    local_100.x = bgParam->xStart();
+    local_100.y = bgParam->yEnd();
+    local_100.z = 0.0f;
+    local_10c.x = local_100.x + bgParam->xSize();
+    local_10c.y = bgParam->yStart();
+    local_10c.z = 0.0f;
 
-    for (int y = 0; y < 34; y++) {
-        for (int x = 0; x < 66; x++) {
-            daFarBG_c::bgData_t *bg = mpBgData + x + y * 66;
+    mVec3_c local_118;
+    mVec3_c local_124;
+    int local_130[3] = { 0, 0, 0 };
+
+
+    daFarBG_c::bgData_t *bg = mpBgData;
+    for (u16 y = 0; y < 34; y++) {
+        for (u16 x = 0; x < 66; x++, bg++) {
+            float someScale = 1.0000012f;
 
             int u7 = bg->m_c;
             if (u7 == 9) {
@@ -1439,30 +1444,26 @@ void daFarBG_c::ReserveModel() {
 
             bool b3 = false;
             daFarBG_c::mdlData_t *model = mpBackgrounds[bg->m_c][0];
-            if ((u7 == mStaticBGIdx) && ((x & 0xFFFF) == 1)) {
+            if ((u7 == mStaticBGIdx) && (x == 1)) {
                 model = mpStaticBackground;
             }
 
-            mMtx_c local_c0 = m_5fc;
-            local_c0._03 += mScale.x * c_PIC_WIDTH * (float)(x - m_5f8);
-            local_c0._13 += mScale.y * c_PIC_HEIGHT * (float)(y - m_5fa);
+            local_c0 = m_5fc;
+            local_c0.m[0][3] += (x - m_5f8) * mScale.x * c_PIC_WIDTH;
+            local_c0.m[1][3] -= (y - m_5fa) * mScale.y * c_PIC_HEIGHT;
 
             for (int u6 = 0; u6 < 6; u6++) {
                 if ((m_5e8[u7] & (1 << u6)) != 0) {
-                    float f2 = local_c0._03 + GetScrollDiff(u6).x;
-                    float f3 = local_c0._13 + GetScrollDiff(u6).y;
-                    float f1 = mScale.x;
-                    mVec3_c local_118;
-                    local_118.x = f2 - f1 * c_PIC_WIDTH_HALF;
-                    local_118.y = f3 - f1 * c_PIC_HEIGHT_HALF;
-                    local_118.z = 0.0f;
-                    mVec3_c local_124;
-                    local_124.x = f2 + f1 * c_PIC_WIDTH_HALF;
-                    local_124.y = f3 + f1 * c_PIC_HEIGHT_HALF;
-                    local_124.z = 0.0f;
+                    float f2 = local_c0.m[0][3] + GetScrollDiff(u6).x;
+                    float f3 = local_c0.m[1][3] + GetScrollDiff(u6).y;
+
+                    local_118.x = f2 - mScale.x * c_PIC_WIDTH_HALF;
+                    local_118.y = f3 - mScale.x * c_PIC_HEIGHT_HALF;
+                    local_124.x = f2 + mScale.x * c_PIC_WIDTH_HALF;
+                    local_124.y = f3 + mScale.x * c_PIC_HEIGHT_HALF;
 
                     if (model->mAnmChr != nullptr) {
-                        local_118.x -= f1 * c_PIC_WIDTH;
+                        local_118.x -= mScale.x * c_PIC_WIDTH;
                     }
                     if (model->mIsTranslation) {
                         // why not use c_PIC_WIDTH_HALF?
@@ -1492,10 +1493,11 @@ void daFarBG_c::ReserveModel() {
             }
 
             if (b3) {
-                local_c0._23 = bg->m_0.z;
-                local_c0.concat(mMtx_c::createScale(1.0000012f, 1.0000012f, 1.0f));
-                model->mModel->setLocalMtx((nw4r::math::MTX34 *)&local_c0);
-                model->mModel->setScale(1.0f, 1.0f, 1.0f);
+                local_c0.m[2][3] = bg->m_0.z;
+                local_c0.concat(mMtx_c::createScale(someScale, someScale, 1.0f));
+                model->mModel->setLocalMtx(&local_c0);
+                float scale = l_TestScale * l_scaleXY;
+                model->mModel->setScale(scale, scale, scale);
                 model->mModel->calc(false);
             }
         }
