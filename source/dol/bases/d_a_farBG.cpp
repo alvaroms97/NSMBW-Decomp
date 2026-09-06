@@ -578,7 +578,8 @@ void daFarBG_c::fn_801173A0(int x, int y) {
             bgData_t *curr = mpBgData + currX + currY * 66;
 
             curr->m_0.x = GetModelBasePosX(currX, x, width);
-            curr->m_0.y = GetScrollBaseY() + (y - 1 - currY) * height + (height * 0.5f - 256.0f);
+            int tmp = y - 1 - currY;
+            curr->m_0.y = GetScrollBaseY() + tmp * height + (height * 0.5f - 256.0f);
 
             if (mIsBgB == 0) {
                 curr->m_0.z = -7000.0f;
