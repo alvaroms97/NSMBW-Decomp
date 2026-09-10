@@ -12,4 +12,7 @@ namespace cLib {
     s16 targetAngleY(const mVec3_c &vec1, const mVec3_c &vec2);
     s16 targetAngleX(const mVec3_c &vec1, const mVec3_c &vec2);
 
+    float addCalcPos(mVec3_c *pos, const mVec3_c &target, float ratio, float maxSpeed, float minSpeed);
+    bool chasePos(mVec3_c *pos, const mVec3_c &target, float speed);
+
 } // namespace cLib
