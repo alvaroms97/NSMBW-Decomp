@@ -7,6 +7,9 @@
 /// @ingroup clib
 namespace cLib {
 
+    void memSet(void *dst, int val, ulong size);
+
     s16 targetAngleY(const mVec3_c &vec1, const mVec3_c &vec2);
+    s16 targetAngleX(const mVec3_c &vec1, const mVec3_c &vec2);
 
 } // namespace cLib
