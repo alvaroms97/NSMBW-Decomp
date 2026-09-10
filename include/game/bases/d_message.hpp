@@ -6,6 +6,9 @@
 
 class MsgRes_c : public EGG::MsgRes {
 public:
+    MsgRes_c(const void *p, EGG::Heap *heap);
+    virtual ~MsgRes_c(); ///< Destroys the MsgRes_c instance.
+
     u8 getFont(ulong messageGroup, ulong messageID);
     u16 getScale(ulong messageGroup, ulong messageID);
 };
