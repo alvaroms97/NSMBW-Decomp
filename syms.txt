@@ -922,6 +922,7 @@ m_PrevWorldNo__9dScWMap_c=0x80429355
 m_PrevSceneNo__9dScWMap_c=0x80429356
 g_profile_WARNING_MANAGER=0x80429538
 g_profile_BG_GM=0x804296A0
+lbl_80429700=0x80429700
 sWPADWorkSize__Q23EGG17CoreControllerMgr=0x80429E10
 mspInstance__13daPyDemoMng_c=0x80429F74
 mNum__9daPyMng_c=0x80429F80
