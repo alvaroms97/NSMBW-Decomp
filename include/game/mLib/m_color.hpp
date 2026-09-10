@@ -7,4 +7,6 @@ struct mColor : public nw4r::ut::Color {
 public:
     mColor() : nw4r::ut::Color() {}
     mColor(nw4r::ut::Color color) : nw4r::ut::Color(color) {}
+
+    void lerp(const GXColor &from, const GXColor &to, float t);
 };
