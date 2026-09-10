@@ -1,6 +1,7 @@
 memcpy=0x80004364
 memset=0x800046B4
 DVDDiskCheck=0x80006780
+OSCalcCRC32=0x801B8760
 __ct__7mVec3_cFv=0x80015E30
 isFunsui__5dEn_cCFv=0x80020690
 endFunsui__5dEn_cFv=0x800206A0
