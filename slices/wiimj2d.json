@@ -68,6 +68,12 @@
     ],
     "slices": [
         {
+            "source": "lib/revolution/DVD/dvd.cpp",
+            "memoryRanges": {
+                ".text": "0x0-0x10"
+            }
+        },
+        {
             "source": "dol/bases/d_2d.cpp",
             "memoryRanges": {
                 ".text": "0x10-0xd90",
