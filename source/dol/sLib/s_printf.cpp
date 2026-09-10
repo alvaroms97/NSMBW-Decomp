@@ -1,8 +1,11 @@
 #include <game/sLib/s_printf.hpp>
 #include <revolution/OS/OSError.h>
+#include <MSL/cstdio>
 
-// TENTATIVE NAME (dtk auto-generated): the .sdata function pointer at 0x80429700.
-extern sPrintf::vprintfFunc lbl_80429700;
+/// @brief The function used to print formatted output.
+/// @note The original name of this variable is unknown.
+/// @unofficial
+sPrintf::vprintfFunc lbl_80429700 = (sPrintf::vprintfFunc) std::vprintf;
 
 sPrintf::vprintfFunc sPrintf::GetVPrintfFunc() {
     return lbl_80429700;
