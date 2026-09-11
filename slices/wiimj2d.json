@@ -416,6 +416,16 @@
             }
         },
         {
+            "source": "dol/bases/d_message_ctrl.cpp",
+            "memoryRanges": {
+                ".text": "0xc73e0-0xc7830",
+                ".ctors": "0x12c-0x130",
+                ".data": "0x195f0-0x19618",
+                ".bss": "0x8610-0x8638"
+            },
+            "compilerFlags": "-proc gekko -fp hard -O4 -opt nocse -inline noauto -Cpp_exceptions off -enum int -RTTI off -ipa file -enc SJIS"
+        },
+        {
             "source": "dol/bases/d_mj2d_data.cpp",
             "memoryRanges": {
                 ".text": "0xc7830-0xc8070",
