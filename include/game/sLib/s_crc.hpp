@@ -12,5 +12,5 @@ public:
      * @param size The size of the buffer, in bytes.
      * @return The CRC32 checksum.
      */
-    static u32 calcCRC32(const void *data, unsigned long size);
+    static ulong calcCRC32(const void *data, ulong size);
 };

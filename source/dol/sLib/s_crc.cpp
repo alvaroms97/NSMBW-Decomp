@@ -1,8 +1,6 @@
 #include <game/sLib/s_crc.hpp>
+#include <revolution/OS.h>
 
-// TENTATIVE NAME (dtk auto-generated): unresolved CRC32 calculation routine.
-extern "C" u32 OSCalcCRC32(const void *data, unsigned long size); ///< @unofficial
-
-u32 sCrc::calcCRC32(const void *data, unsigned long size) {
+ulong sCrc::calcCRC32(const void *data, ulong size) {
     return OSCalcCRC32(data, size);
 }
