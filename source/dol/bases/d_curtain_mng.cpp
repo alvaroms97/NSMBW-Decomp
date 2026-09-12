@@ -1,47 +1,15 @@
 #include <game/bases/d_curtain_mng.hpp>
 
 void dCurtainMng_c::CurtainInfoAllClear() {
-    for (int i = 0; i < 4; i++) {
-        CurtainInfo_c *info = m_curtainInfo[i];
+    for (int i = 0; i < ARRAY_SIZE(mCurtainInfo); i++) {
+        for (int j = 0; j < ARRAY_SIZE(mCurtainInfo[i]); j++) {
 
-        info[0].field_0x0 = 0xFFFF;
-        info[0].field_0x4[0] = 0.0f;
-        info[0].field_0x4[1] = 0.0f;
-        info[0].field_0x4[2] = 0.0f;
-        info[0].field_0x4[3] = 0.0f;
-        info[0].field_0x4[4] = 0.0f;
-        info[0].field_0x4[5] = 0.0f;
-        info[0].field_0x4[6] = 0.0f;
-        info[0].field_0x4[7] = 0.0f;
+            CurtainInfo_c* info = &mCurtainInfo[i][j];
+            info->mUnk00 = 0xFFFF;
 
-        info[1].field_0x0 = 0xFFFF;
-        info[1].field_0x4[0] = 0.0f;
-        info[1].field_0x4[1] = 0.0f;
-        info[1].field_0x4[2] = 0.0f;
-        info[1].field_0x4[3] = 0.0f;
-        info[1].field_0x4[4] = 0.0f;
-        info[1].field_0x4[5] = 0.0f;
-        info[1].field_0x4[6] = 0.0f;
-        info[1].field_0x4[7] = 0.0f;
-
-        info[2].field_0x0 = 0xFFFF;
-        info[2].field_0x4[0] = 0.0f;
-        info[2].field_0x4[1] = 0.0f;
-        info[2].field_0x4[2] = 0.0f;
-        info[2].field_0x4[3] = 0.0f;
-        info[2].field_0x4[4] = 0.0f;
-        info[2].field_0x4[5] = 0.0f;
-        info[2].field_0x4[6] = 0.0f;
-        info[2].field_0x4[7] = 0.0f;
-
-        info[3].field_0x0 = 0xFFFF;
-        info[3].field_0x4[0] = 0.0f;
-        info[3].field_0x4[1] = 0.0f;
-        info[3].field_0x4[2] = 0.0f;
-        info[3].field_0x4[3] = 0.0f;
-        info[3].field_0x4[4] = 0.0f;
-        info[3].field_0x4[5] = 0.0f;
-        info[3].field_0x4[6] = 0.0f;
-        info[3].field_0x4[7] = 0.0f;
+            for (int k = 0; k < ARRAY_SIZE(info->mUnk04); k++) {
+                info->mUnk04[k] = 0.0f;
+            }
+        }
     }
 }
