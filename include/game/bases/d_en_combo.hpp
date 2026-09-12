@@ -5,13 +5,13 @@
 class dEnCombo_c {
 public:
     /// @unofficial
-    enum COMBO_TYPE_e {
+    enum ComboType_e {
         COMBO_NONE,
         COMBO_REGULAR,
         COMBO_SHORT
     };
 
-    dEnCombo_c(COMBO_TYPE_e type) : mType(type) {}
+    dEnCombo_c(ComboType_e type) : mType(type) {}
 
     int getComboScore(int);
     int getQuakeScore(int) const;
@@ -22,5 +22,5 @@ public:
     static int calcPlComboCnt(dActor_c *actor);
     static int calcPlFumiCnt(dActor_c *actor);
 
-    COMBO_TYPE_e mType;
+    ComboType_e mType;
 };
