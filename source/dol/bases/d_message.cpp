@@ -5,10 +5,7 @@
 
 static dMessage_c l_dMessage_obj;
 
-dMessage_c::dMessage_c() {
-    mpFileData = nullptr;
-    mpMsgRes = nullptr;
-}
+dMessage_c::dMessage_c() : mpFileData(nullptr), mpMsgRes(nullptr) {}
 
 dMessage_c::~dMessage_c() {
     delete mpMsgRes;
@@ -25,10 +22,8 @@ bool dMessage_c::create(EGG::Heap *heap) {
         }
 
         EGG::Archive *archive = EGG::Archive::mount(buffer, heap, 4);
-
         EGG::Archive::FileInfo fileInfo;
         l_dMessage_obj.mpFileData = archive->getFile("wii_mj2d.bmg", &fileInfo);
-
         l_dMessage_obj.buildMsgRes(heap);
     }
 

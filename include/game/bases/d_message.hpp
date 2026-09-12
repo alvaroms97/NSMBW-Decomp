@@ -19,7 +19,7 @@ public:
     static MsgRes_c *getMesRes(); ///< Gets the @p MsgRes_c instance used.
 
     /**
-     * @brief Writes @p num into @p dst as @p digitCount decimal digits, replacing
+     * @brief Writes @p num into @p dst with @p digitCount decimal digits, replacing
      * suppressed leading zeros with spaces. At most @p writeLimit characters are
      * written, followed by a null terminator.
      * @unofficial
@@ -39,6 +39,6 @@ public:
     static void changetoFullSize(wchar_t *str); ///< Converts regular ASCII characters in @p str to full-width characters.
 
     dDvd::loader_c mLoader; ///< The loader for loading the message resource file from disk.
-    void *mpFileData; ///< The raw data of the message resource file.
+    void *mpFileData; ///< The raw message resource file data.
     MsgRes_c *mpMsgRes; ///< The message resource instance used to retrieve messages.
 };
