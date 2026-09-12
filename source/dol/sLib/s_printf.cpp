@@ -2,18 +2,15 @@
 #include <revolution/OS/OSError.h>
 #include <MSL/cstdio>
 
-/// @brief The function used to print formatted output.
-/// @note The original name of this variable is unknown.
-/// @unofficial
-sPrintf::vprintfFunc lbl_80429700 = (sPrintf::vprintfFunc) std::vprintf;
-
-sPrintf::vprintfFunc sPrintf::GetVPrintfFunc() {
-    return lbl_80429700;
+vprintfFunc sPrintf::GetVPrintfFunc() {
+    return sLib::p_VPrintfFuncPtr;
 }
 
 int sPrintf::vprintf(const char *format, va_list *args) {
     return GetVPrintfFunc()(format, args);
 }
+
+// Override the default OSReport and OSVReport functions
 
 extern "C" void OSReport(const char *msg, ...) {
     va_list list;

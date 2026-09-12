@@ -1,15 +1,13 @@
 #pragma once
 #include <types.h>
+#include <game/sLib/s_lib.hpp>
 
 /// @brief Wrapper around the runtime's formatted print function.
 /// @ingroup slib
-class sPrintf {
-public:
-    /// @brief The signature of the function used to print formatted output.
-    typedef int (*vprintfFunc)(const char *format, va_list *args);
-
+namespace sPrintf {
     /// @brief Gets the function used to print formatted output.
-    static vprintfFunc GetVPrintfFunc();
+    vprintfFunc GetVPrintfFunc();
+
     /**
      * @brief Prints formatted output.
      *
@@ -17,5 +15,5 @@ public:
      * @param args The arguments for the format string.
      * @return The number of characters printed.
      */
-    static int vprintf(const char *format, va_list *args);
+    int vprintf(const char *format, va_list *args);
 };
