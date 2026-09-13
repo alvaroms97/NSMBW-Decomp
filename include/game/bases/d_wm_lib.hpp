@@ -50,8 +50,16 @@ namespace dWmLib {
 
     int GetCourseTypeFromCourseNo(int courseNo);
     int GetCourseNoFromPointName(const char *pointName);
+    /// @brief Returns the type of the point with the given name.
+    /// @param pointName The name of the point.
     TypePoint_e GetPointTypeFromPointName(const char *pointName);
+
+    /// @brief Writes the route name formed by joining two point names.
+    /// @param out Buffer to write the route name to.
+    /// @param pointA The name of the first point.
+    /// @param pointB The name of the second point.
     void MakeRouteName(char *out, const char *pointA, const char *pointB);
+
     bool isKoopaShipAnchor();
     u8 getStartPointKinokoHouseKindNum();
     bool isStartPointKinokoHouseStar();
