@@ -3,6 +3,15 @@
 #include <lib/egg/core/eggHeap.h>
 #include <lib/egg/core/eggArchive.h>
 
+namespace mDvd {
+void create(long, EGG::Heap *, EGG::Heap *, EGG::Heap *);
+EGG::Heap *getArchiveHeap();
+void setAutoStreamDecomp(bool);
+} // namespace mDvd
+
+/// [TODO: unidentified function, no known symbol name yet]
+extern "C" void fn_8016B1E0(); ///< @unofficial
+
 class mDvd_command_c {
 public:
     virtual ~mDvd_command_c();
@@ -44,4 +53,5 @@ public:
 
     u8 mPad[0x4];
     void *mpData;
+    u32 mSize; ///< @unofficial
 };
