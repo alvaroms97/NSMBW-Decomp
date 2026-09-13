@@ -98,6 +98,12 @@
             }
         },
         {
+            "source": "dol/mLib/m_gx_state_save.cpp",
+            "memoryRanges": {
+                ".text": "0xdbb0-0xde30"
+            }
+        },
+        {
             "source": "dol/bases/d_SmallScore.cpp",
             "memoryRanges": {
                 ".text": "0xe790-0xf5e0",
