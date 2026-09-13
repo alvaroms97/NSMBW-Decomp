@@ -1,5 +1,4 @@
-// TENTATIVE NAME (dtk auto-generated): unresolved low-level DVD disk-check routine.
-extern "C" void DVDCheckDiskBca(); ///< @unofficial
+#include <revolution/DVD/dvd.h>
 
 extern "C" void DVDDiskCheck() {
     DVDCheckDiskBca();
